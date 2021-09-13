@@ -1,22 +1,19 @@
 import torch
 
 
-def sample_gumbel_diff(*shape):
-    eps = 1e-20
-    u1 = torch.rand(shape)
-    u2 = torch.rand(shape)
-    diff = torch.log(torch.log(u2+eps)/torch.log(u1+eps)+eps)
-    return diff
-
-
-def gumbel_sigmoid(logits, T=1.0, hard=False):
-    g = sample_gumbel_diff(*logits.shape)
-    y = (g + logits) / T
-    s = torch.sigmoid(y)
+def gumbel_sigmoid(logit, tau=1.0, hard=False):
+    u = torch.rand(logit.shape).to(logit.device)
+    if torch.isinf(torch.log(u)).any():
+        print("YES!")
+    if torch.isinf(torch.log(1-u)).any():
+        print("YES 2!")
+    g = torch.log(u) - torch.log(1-u)
+    noisy_logit = (g+logit)/tau
+    y = torch.sigmoid(noisy_logit)
     if hard:
-        s_hard = s.round()
-        s = (s_hard - s).detach() + s
-    return s
+        y_hard = y.round()
+        y = (y_hard - y).detach() + y
+    return y
 
 
 def prob_to_logit(probs):
