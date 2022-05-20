@@ -4,3 +4,4 @@ __pycache__
 data
 setup.cfg
 *.ipynb
+*.sublime-workspace
